@@ -52,9 +52,11 @@ function domQs(dom) { return BANK.questions.filter(q => String(q.domain) === Str
 
 /* ---------- difficulty progression (3 tiers: Core / Medium / Advanced) ---------- */
 function domainStats(dom) {
-  const s = { t: { 1:{seen:0,correct:0}, 2:{seen:0,correct:0}, 3:{seen:0,correct:0} }, seen: 0, correct: 0 };
+  const s = { t: { 1:{seen:0,correct:0}, 2:{seen:0,correct:0}, 3:{seen:0,correct:0} }, seen: 0, correct: 0, total: 0, mastered: 0 };
   domQs(dom).forEach(q => {
+    s.total++;                                  // every question in the domain
     const h = peek(q.id);
+    if (h.correct > 0) s.mastered++;            // got it right at least once
     const ans = h.correct + h.wrong;
     if (!ans) return;
     s.seen += ans; s.correct += h.correct;
@@ -79,13 +81,15 @@ function domainLevel(dom) {
   const L3 = L2 && ge2C >= NEED && acc(ge2C, ge2S) >= 0.70;         // can handle Medium-level
   const L4 = L3 && ge3C >= NEED && acc(ge3C, ge3S) >= 0.75;         // can handle Advanced-level
   if (L4) level = 4; else if (L3) level = 3; else if (L2) level = 2;
-  let progress = 0, nextNeed = "";
-  if (level === 0) { progress = 0; nextNeed = "Answer a few to begin"; }
-  else if (level === 1) { progress = Math.min(1, totC / NEED); nextNeed = `${Math.min(totC,NEED)}/${NEED} correct → Proficient`; }
-  else if (level === 2) { progress = Math.min(1, ge2C / NEED); nextNeed = `${Math.min(ge2C,NEED)}/${NEED} Medium+ correct → Advanced`; }
-  else if (level === 3) { progress = Math.min(1, ge3C / NEED); nextNeed = `${Math.min(ge3C,NEED)}/${NEED} Advanced correct → Mastered`; }
-  else { progress = 1; nextNeed = "Top level reached"; }
-  return { level, name: LEVEL_NAMES[level], progress, nextNeed, accuracy: pct(totC, totS), seen: totS };
+  // The progress bar = overall progress through the WHOLE domain: how many of the
+  // domain's questions you've answered correctly at least once, out of its total.
+  const coverage = s.total ? s.mastered / s.total : 0;
+  const title = `${s.mastered} of ${s.total} questions answered correctly` + (totS ? ` · ${pct(totC, totS)}% accuracy` : "");
+  return {
+    level, name: LEVEL_NAMES[level],
+    progress: coverage, coveragePct: Math.round(coverage * 100),
+    title, accuracy: pct(totC, totS), seen: totS
+  };
 }
 // Smart practice serves the tier you're currently working through:
 // Foundation/L1 -> Core, Proficient/L2 -> Medium, Advanced+/L3-4 -> Advanced.
@@ -127,8 +131,8 @@ function renderHome() {
     domRows += `<div class="dom-row">
         <span class="nm">${k}. ${esc(doms[k].name)}</span>
         <span class="lvl lvl-${dl.level}">${dl.level ? esc(dl.name) : "&ndash;"}</span>
-        <span class="bar" title="${esc(dl.nextNeed)}"><div style="width:${Math.round(dl.progress*100)}%"></div></span>
-        <span class="pct">${dl.seen ? dl.accuracy + "%" : ""}</span>
+        <span class="bar" title="${esc(dl.title)}"><div style="width:${Math.round(dl.progress*100)}%"></div></span>
+        <span class="pct">${dl.coveragePct}%</span>
       </div>`;
   });
 
