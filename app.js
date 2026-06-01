@@ -64,22 +64,28 @@ function domainStats(dom) {
   return s;
 }
 function acc(c, s) { return s ? c / s : 0; }
+const NEED = 6;  // correct answers (at the working tier or harder) to clear a level
 function domainLevel(dom) {
   const s = domainStats(dom);
   const t1 = s.t[1], t2 = s.t[2], t3 = s.t[3];
+  // Count correct answers at the current tier OR HARDER toward the next level —
+  // doing well on harder questions is evidence of progress, so it must move the bar.
+  const totC = s.correct, totS = s.seen;
+  const ge2C = t2.correct + t3.correct, ge2S = t2.seen + t3.seen;   // Medium or harder
+  const ge3C = t3.correct, ge3S = t3.seen;                          // Advanced
   let level = 0;
-  if (s.seen > 0) level = 1;
-  const L2 = t1.correct >= 6 && acc(t1.correct, t1.seen) >= 0.70;   // mastered Core
-  const L3 = L2 && t2.correct >= 6 && acc(t2.correct, t2.seen) >= 0.70;  // mastered Medium
-  const L4 = L3 && t3.correct >= 6 && acc(t3.correct, t3.seen) >= 0.75;  // mastered Advanced
+  if (totS > 0) level = 1;
+  const L2 = totC >= NEED && acc(totC, totS) >= 0.70;               // can handle Core-level
+  const L3 = L2 && ge2C >= NEED && acc(ge2C, ge2S) >= 0.70;         // can handle Medium-level
+  const L4 = L3 && ge3C >= NEED && acc(ge3C, ge3S) >= 0.75;         // can handle Advanced-level
   if (L4) level = 4; else if (L3) level = 3; else if (L2) level = 2;
   let progress = 0, nextNeed = "";
   if (level === 0) { progress = 0; nextNeed = "Answer a few to begin"; }
-  else if (level === 1) { progress = Math.min(1, t1.correct / 6); nextNeed = `${Math.min(t1.correct,6)}/6 Core correct → Proficient`; }
-  else if (level === 2) { progress = Math.min(1, t2.correct / 6); nextNeed = `${Math.min(t2.correct,6)}/6 Medium correct → Advanced`; }
-  else if (level === 3) { progress = Math.min(1, t3.correct / 6); nextNeed = `${Math.min(t3.correct,6)}/6 Advanced correct → Mastered`; }
+  else if (level === 1) { progress = Math.min(1, totC / NEED); nextNeed = `${Math.min(totC,NEED)}/${NEED} correct → Proficient`; }
+  else if (level === 2) { progress = Math.min(1, ge2C / NEED); nextNeed = `${Math.min(ge2C,NEED)}/${NEED} Medium+ correct → Advanced`; }
+  else if (level === 3) { progress = Math.min(1, ge3C / NEED); nextNeed = `${Math.min(ge3C,NEED)}/${NEED} Advanced correct → Mastered`; }
   else { progress = 1; nextNeed = "Top level reached"; }
-  return { level, name: LEVEL_NAMES[level], progress, nextNeed, accuracy: pct(s.correct, s.seen), seen: s.seen };
+  return { level, name: LEVEL_NAMES[level], progress, nextNeed, accuracy: pct(totC, totS), seen: totS };
 }
 // Smart practice serves the tier you're currently working through:
 // Foundation/L1 -> Core, Proficient/L2 -> Medium, Advanced+/L3-4 -> Advanced.
