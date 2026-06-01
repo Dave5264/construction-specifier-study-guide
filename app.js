@@ -400,5 +400,37 @@ function renderResults() {
   document.getElementById("homeBtn2").onclick = () => { session = null; renderHome(); };
 }
 
-/* ---------- service worker ---------- */
-if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+/* ---------- service worker + update prompt ---------- */
+let swUpdating = false;
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (swUpdating) location.reload(); });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then((reg) => {
+      // a new version was already waiting from a previous visit
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
+      // a new version is downloaded while the app is open
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) showUpdate(nw);
+        });
+      });
+      // re-check for a new version each time the app comes back to the foreground
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+    }).catch(() => {});
+  });
+}
+function showUpdate(worker) {
+  if (document.getElementById("updateBar")) return;
+  const bar = document.createElement("div");
+  bar.id = "updateBar";
+  bar.className = "update-bar";
+  bar.innerHTML = '<span>New version available</span><button id="updateBtn">Refresh</button>';
+  document.body.appendChild(bar);
+  document.getElementById("updateBtn").onclick = () => {
+    document.getElementById("updateBtn").textContent = "Updating…";
+    swUpdating = true;
+    worker.postMessage({ type: "SKIP_WAITING" });
+  };
+}

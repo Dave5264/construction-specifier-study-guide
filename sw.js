@@ -1,5 +1,5 @@
 /* Construction Specifier Study Guide service worker — offline-first app shell */
-const CACHE = "spec-guide-v7";
+const CACHE = "spec-guide-v9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -13,7 +13,13 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // cache the new version, but DON'T auto-activate — wait for the user to tap "Refresh"
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+});
+
+// the page asks us to activate the new version when the user taps Refresh
+self.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {

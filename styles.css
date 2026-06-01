@@ -237,3 +237,22 @@ select {
 .ropt { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
 .ropt.correct { border-color: var(--correct); background: var(--correct-bg); }
 .ropt.chosen-wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+
+/* update-available prompt */
+.update-bar {
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom));
+  max-width: 696px; margin: 0 auto;
+  background: var(--accent); color: #fff;
+  border-radius: 12px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+  z-index: 200;
+  animation: slideup .25s ease;
+}
+.update-bar span { flex: 1; font-weight: 500; }
+.update-bar button {
+  flex-shrink: 0; background: #fff; color: var(--accent);
+  border: none; border-radius: 8px; padding: 8px 16px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
+@keyframes slideup { from { transform: translateY(120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
