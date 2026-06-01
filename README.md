@@ -1,5 +1,10 @@
 # Construction Specifier Study Guide — PWA
 
+### ▶️ Live app: **https://dave5264.github.io/construction-specifier-study-guide/**
+
+Open that link on your phone, then use your browser's **Add to Home Screen** to
+install it. Works fully offline once loaded.
+
 An installable, offline, text-only study app built on a question bank
 (`questions.json`, 803 questions on construction specification practice). No backend,
 no network needed after first load. A general study guide for the topic.
