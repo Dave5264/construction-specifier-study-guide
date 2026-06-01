@@ -1,0 +1,20 @@
+{
+  "id": "construction-specifier-study-guide",
+  "name": "Construction Specifier Study Guide",
+  "short_name": "Spec Guide",
+  "description": "A study guide for construction specification practice — concepts, terminology, and document organization. Independent educational aid.",
+  "lang": "en-US",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f4ef",
+  "theme_color": "#2c5f8d",
+  "categories": ["education", "books"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
