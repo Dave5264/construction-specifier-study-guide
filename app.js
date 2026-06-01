@@ -437,6 +437,16 @@ function showUpdate(worker) {
   document.getElementById("updateBtn").onclick = () => {
     document.getElementById("updateBtn").textContent = "Updating…";
     swUpdating = true;
-    worker.postMessage({ type: "SKIP_WAITING" });
+    // Ask the waiting worker to take over. Re-fetch reg.waiting in case `worker` is stale.
+    try { if (worker) worker.postMessage({ type: "SKIP_WAITING" }); } catch (e) {}
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg && reg.waiting) { try { reg.waiting.postMessage({ type: "SKIP_WAITING" }); } catch (e) {} }
+      }).catch(() => {});
+    }
+    // Fallback: some browsers (notably iOS standalone PWAs) don't fire
+    // `controllerchange`, which would leave the button stuck on "Updating…".
+    // Reload anyway after a short delay so it can never hang.
+    setTimeout(() => location.reload(), 2000);
   };
 }
