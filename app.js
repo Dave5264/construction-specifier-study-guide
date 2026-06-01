@@ -47,41 +47,43 @@ function peek(id) { return state.history[id] || BLANK; }
 function hist(id) { return state.history[id] || (state.history[id] = { seen: 0, correct: 0, wrong: 0, bookmarked: false }); }
 function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
 function pct(n, d) { return d ? Math.round((n / d) * 100) : 0; }
-function tier(q) { return q.hard ? 2 : 1; }            // 1 = Core, 2 = Advanced
+function tier(q) { return q.difficulty || (q.hard ? 3 : 1); }   // 1 = Core, 2 = Medium, 3 = Advanced
 function domQs(dom) { return BANK.questions.filter(q => String(q.domain) === String(dom)); }
 
-/* ---------- difficulty progression ---------- */
+/* ---------- difficulty progression (3 tiers: Core / Medium / Advanced) ---------- */
 function domainStats(dom) {
-  const s = { coreSeen: 0, coreCorrect: 0, hardSeen: 0, hardCorrect: 0, seen: 0, correct: 0 };
+  const s = { t: { 1:{seen:0,correct:0}, 2:{seen:0,correct:0}, 3:{seen:0,correct:0} }, seen: 0, correct: 0 };
   domQs(dom).forEach(q => {
     const h = peek(q.id);
     const ans = h.correct + h.wrong;
     if (!ans) return;
     s.seen += ans; s.correct += h.correct;
-    if (tier(q) === 2) { s.hardSeen += ans; s.hardCorrect += h.correct; }
-    else { s.coreSeen += ans; s.coreCorrect += h.correct; }
+    const t = s.t[tier(q)] || s.t[1];
+    t.seen += ans; t.correct += h.correct;
   });
   return s;
 }
 function acc(c, s) { return s ? c / s : 0; }
 function domainLevel(dom) {
   const s = domainStats(dom);
-  let level = 0, progress = 0, nextNeed = "";
+  const t1 = s.t[1], t2 = s.t[2], t3 = s.t[3];
+  let level = 0;
   if (s.seen > 0) level = 1;
-  const coreA = acc(s.coreCorrect, s.coreSeen), hardA = acc(s.hardCorrect, s.hardSeen);
-  const L2 = s.coreCorrect >= 6 && coreA >= 0.70;
-  const L3 = L2 && s.hardCorrect >= 6 && hardA >= 0.70;
-  const L4 = L3 && s.hardCorrect >= 12 && hardA >= 0.85;
-  if (L4) level = 4; else if (L3) level = 3; else if (L2) level = 2; else if (level === 1) level = 1;
-  // progress toward next level (binding metric)
+  const L2 = t1.correct >= 6 && acc(t1.correct, t1.seen) >= 0.70;   // mastered Core
+  const L3 = L2 && t2.correct >= 6 && acc(t2.correct, t2.seen) >= 0.70;  // mastered Medium
+  const L4 = L3 && t3.correct >= 6 && acc(t3.correct, t3.seen) >= 0.75;  // mastered Advanced
+  if (L4) level = 4; else if (L3) level = 3; else if (L2) level = 2;
+  let progress = 0, nextNeed = "";
   if (level === 0) { progress = 0; nextNeed = "Answer a few to begin"; }
-  else if (level === 1) { progress = Math.min(1, s.coreCorrect / 6); nextNeed = `${Math.min(s.coreCorrect,6)}/6 core correct for Proficient`; }
-  else if (level === 2) { progress = Math.min(1, s.hardCorrect / 6); nextNeed = `${Math.min(s.hardCorrect,6)}/6 advanced correct for Advanced`; }
-  else if (level === 3) { progress = Math.min(1, s.hardCorrect / 12); nextNeed = `${Math.min(s.hardCorrect,12)}/12 advanced correct for Mastered`; }
+  else if (level === 1) { progress = Math.min(1, t1.correct / 6); nextNeed = `${Math.min(t1.correct,6)}/6 Core correct → Proficient`; }
+  else if (level === 2) { progress = Math.min(1, t2.correct / 6); nextNeed = `${Math.min(t2.correct,6)}/6 Medium correct → Advanced`; }
+  else if (level === 3) { progress = Math.min(1, t3.correct / 6); nextNeed = `${Math.min(t3.correct,6)}/6 Advanced correct → Mastered`; }
   else { progress = 1; nextNeed = "Top level reached"; }
   return { level, name: LEVEL_NAMES[level], progress, nextNeed, accuracy: pct(s.correct, s.seen), seen: s.seen };
 }
-function targetTier(dom) { return domainLevel(dom).level >= 2 ? 2 : 1; }
+// Smart practice serves the tier you're currently working through:
+// Foundation/L1 -> Core, Proficient/L2 -> Medium, Advanced+/L3-4 -> Advanced.
+function targetTier(dom) { const l = domainLevel(dom).level; return l >= 3 ? 3 : (l === 2 ? 2 : 1); }
 
 /* ---------- timer ---------- */
 function endTimer() { if (session && session.timerId) { clearInterval(session.timerId); session.timerId = null; } }
@@ -147,7 +149,7 @@ function renderHome() {
         <select id="lenSel">${lengths.map(o=>`<option value="${o[0]}" ${state.settings.length===o[0]?"selected":""}>${o[1]}</option>`).join("")}</select>
       </div>
       <button class="btn primary" id="startBtn">Start</button>
-      <button class="btn" id="smartBtn">Smart practice<span class="small">serves questions at your current level</span></button>
+      <button class="btn" id="smartBtn">Smart practice<span class="small">starts at Core, steps up to Advanced as you improve</span></button>
       <div class="row">
         <button class="btn ghost" id="missedBtn" ${missed?"":"disabled"}>Review missed${missed?` (${missed})`:""}</button>
         <button class="btn ghost" id="markedBtn" ${marked?"":"disabled"}>Bookmarked${marked?` (${marked})`:""}</button>
@@ -281,7 +283,7 @@ function renderQuiz() {
     <div class="panel">
       <div style="display:flex;align-items:center;gap:8px">
         <span class="chip">D${q.domain} &middot; ${esc(dname)}</span>
-        <span class="chip ${tier(q)===2?"chip-adv":"chip-core"}">${tier(q)===2?"Advanced":"Core"}</span>
+        <span class="chip ${["","chip-core","chip-med","chip-adv"][tier(q)]}">${["","Core","Medium","Advanced"][tier(q)]}</span>
         <button class="bookmark ${bk?"on":""}" id="bkBtn" title="Bookmark">${bk?"&#9733;":"&#9734;"}</button>
       </div>
       <p class="qstem">${esc(q.question)}</p>

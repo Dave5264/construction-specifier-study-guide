@@ -185,10 +185,14 @@ select {
 .seg button.on { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
 .seg button.on .small { color: var(--accent); }
 
-/* tier chip */
+/* tier chips — Core (cool) -> Medium (amber) -> Advanced (warm) */
 .chip-core { background: var(--accent-light); color: var(--accent); }
-.chip-adv { background: #f0e2c8; color: #8a6400; }
-@media (prefers-color-scheme: dark) { .chip-adv { background: #3a3017; color: #e0b85f; } }
+.chip-med { background: #f5e8c8; color: #8a6a1f; }
+.chip-adv { background: #f1dccf; color: #a5481f; }
+@media (prefers-color-scheme: dark) {
+  .chip-med { background: #38301a; color: #e0c179; }
+  .chip-adv { background: #3a2820; color: #e0a07f; }
+}
 
 /* difficulty level badge in domain rows */
 .dom-row .lvl { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; min-width: 74px; text-align: center; }
