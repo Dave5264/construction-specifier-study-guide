@@ -6,14 +6,14 @@ Open that link on your phone, then use your browser's **Add to Home Screen** to
 install it. Works fully offline once loaded.
 
 An installable, offline, text-only study app built on a question bank
-(`questions.json`, 803 questions on construction specification practice). No backend,
+(`questions.json`, 1,353 questions on construction specification practice). No backend,
 no network needed after first load. A general study guide for the topic.
 
 ## Files
 - `index.html` — app shell
 - `styles.css` — mobile-first styling, light + dark mode
 - `app.js` — study logic, progress (localStorage), difficulty levels, review/bookmarks
-- `questions.json` — the cleaned question bank (copy of `../question_bank.json`)
+- `questions.json` — the cleaned question bank
 - `manifest.webmanifest` — PWA metadata (name, icons, theme)
 - `sw.js` — service worker (offline cache)
 - `icon-192.png`, `icon-512.png` — app icons
