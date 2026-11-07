@@ -17387,15 +17387,15 @@
    "domain": 6,
    "domain_name": "Production",
    "task_area": "6.4",
-   "question": "Using the reference standards method, one accepted option is to consolidate all reference standards in:",
+   "question": "One accepted way to handle reference standards leaves the edition dates out of each specification section. Under that approach, the standards themselves are listed in:",
    "options": {
     "A": "An appendix to the project manual after Division 49",
     "B": "The general conditions within Division 00 documents",
     "C": "Each individual technical section's PART 1 article",
     "D": "Section 01 42 00 References in Division 01"
    },
-   "correct": "D",
-   "explanation": "Reference standards can be handled two ways: list each standard within the section that uses it, or gather them together in a single Division 01 references section (01 42 00). Option 2 is the consolidated approach.",
+   "correct": "C",
+   "explanation": "Either way, the standards are listed in each section's References article in PART 1. When the dates are left out there, a statement in Section 01 42 00 References sets which edition applies, usually the one in effect when bids are received. That section can also define the standards organizations' abbreviations, but it does not hold the standards themselves.",
    "source": "Reference standards",
    "_polished": true,
    "_cleaned": true,
