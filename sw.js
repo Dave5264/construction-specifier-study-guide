@@ -1,5 +1,5 @@
 /* Construction Specifier Study Guide service worker — offline-first app shell */
-const CACHE = "spec-guide-v15";
+const CACHE = "spec-guide-v16";
 const ASSETS = [
   "./",
   "./index.html",
